@@ -26,14 +26,10 @@ Simple C は、古典的な小型コンパイラの流れに沿っている。
 
 参考になる教科書・資料:
 
-- Brian W. Kernighan and Dennis M. Ritchie, *The C Programming Language*
-- Alfred V. Aho, Monica S. Lam, Ravi Sethi, Jeffrey D. Ullman,
-  *Compilers: Principles, Techniques, and Tools*
-- Andrew W. Appel, *Modern Compiler Implementation*
-- Christopher W. Fraser and David R. Hanson, *A Retargetable C Compiler*
-- Jack Crenshaw, *Let's Build a Compiler*
-- Nora Sandler, *Writing a C Compiler*
-- Abdulaziz Ghuloum, *An Incremental Approach to Compiler Construction*
+- Brian W. Kernighan, Dennis M. Ritchie『プログラミング言語C 第 2 版』（共立出版）
+- Alfred V. Aho ほか『コンパイラ — 原理・技法・ツール 第 2 版』（サイエンス社、通称ドラゴンブック）
+- 中田育男『コンパイラの構成と最適化 第 2 版』（朝倉書店）
+- Andrew W. Appel『最新コンパイラ構成技法』（翔泳社）
 
 これらは学習背景として挙げている。本文、図、まとまったコード例は転載しない。
 
@@ -51,7 +47,7 @@ Simple C は意図的に素直な構成にしている。
 
 yacc、bison、ANTLR、parser combinator、外部 parser generator は使っていない。
 
-現時点では独立した IR は無い。`ccgen.py` が AST を直接たどり、ターゲット asm を出す。
+現時点では独立した IR（中間表現）は無い。`ccgen.py` が AST を直接たどり、ターゲット asm を出す。
 optimizer は IR を介さず、AST → asm 生成パスの中と、生成直後の line 列に対する 1 パスの peephole として組み込んでいる。詳細は「Optimizer」節を参照。
 
 ## ビルドの流れ
