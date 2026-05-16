@@ -83,7 +83,6 @@ Simple-C/
 ├── Docs/
 │   ├── Simple_C.md                                    Simple C 言語仕様と内部実装
 │   ├── Simple_C.en.md                                 English summary
-│   ├── Simple_os_plan.md                              OS C 化の設計方針
 │   ├── Modifying_Simple_OS.md                         機能追加・削除ガイド
 │   └── OriginalCPU.md                                 書籍由来の CPU 仕様参照
 └── vendor/book/                                       setup.py が populate（gitignore 対象）
@@ -92,7 +91,6 @@ Simple-C/
 ## ドキュメント
 
 - [`Docs/Simple_C.md`](Docs/Simple_C.md) ── Simple C の言語サブセットと実装の解説
-- [`Docs/Simple_os_plan.md`](Docs/Simple_os_plan.md) ── Simple OS を C へ書き直した設計方針
 - [`Docs/Modifying_Simple_OS.md`](Docs/Modifying_Simple_OS.md) ── 機能追加・削除時の注意点
 - [`Docs/OriginalCPU.md`](Docs/OriginalCPU.md) ── 書籍の独自 32 ビット CPU 仕様（参照用）
 
