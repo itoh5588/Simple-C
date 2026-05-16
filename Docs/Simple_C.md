@@ -51,8 +51,8 @@ Simple C は意図的に素直な構成にしている。
 
 yacc、bison、ANTLR、parser combinator、外部 parser generator は使っていない。
 
-現時点では独立した IR も無い。`ccgen.py` が AST を直接たどり、ターゲット asm を出す。
-optimizer もまだ無い。
+現時点では独立した IR は無い。`ccgen.py` が AST を直接たどり、ターゲット asm を出す。
+optimizer は IR を介さず、AST → asm 生成パスの中と、生成直後の line 列に対する 1 パスの peephole として組み込んでいる。詳細は「Optimizer」節を参照。
 
 ## ビルドの流れ
 
@@ -382,7 +382,6 @@ Simple C は shift を loop で生成する。
 現在の主な制限:
 
 - 独立した IR が無い。
-- optimizer が無い。
 - register allocator が無い。
 - function pointer は未対応。
 - cast は未対応。
@@ -405,29 +404,24 @@ Simple C は shift を loop で生成する。
 一部 keyword は token 化だけされていて、構文やコード生成は未実装である。
 token として認識されることと、その言語機能が動くことは別として扱う。
 
-## Optimizer メモ
+## Optimizer
 
-Simple C は現状、読みやすさと直接的なコード生成を優先している。
+独立した IR を持たないため、optimizer は AST → asm 生成パスの中と、生成直後の line 列に対する 1 パス peephole として実装している。`simple_os.asm` を題材に、3 フェーズに分けて段階的に追加した。
 
-生成 asm は手書き asm より大きくなりやすい。これは optimizer が無いためで、現時点では想定通り。
+- **第1フェーズ — builtin inline 化**: ゼロ引数で本体が単一 `InlineAsm` の関数を呼び出し側で直接展開（`os_label_*` 6 個と `os_halt` が対象）。`CALL` + プロローグ・エピローグ + `RET` の 7 命令を 1 命令へ。
+- **第2フェーズ — peephole + 直接 load + 定数畳み込み**: `JPI` 直後にラベル / 隣接 `PUSH`/`POP` 同レジスタ / 自己 `MOV` の削除、`MOV R1,R0; LDD R0,[R1]` を `LDD R0,[R0]` 1 命令へ、右辺 `IntLit` の二項演算と定数 shift を即値 1 命令へ。
+- **第3フェーズ — compare-branch fusion + 短絡評価**: 0/1 マテリアライズなしで `SBT` 結果から直接分岐、比較の右辺 `IntLit` を `SBTI` 1 命令化、`&&` / `||` / `!` を再帰的に直接分岐へ分解（値文脈にも適用）。
 
-初期 optimizer 候補:
+`simple_os.asm` の行数で見たサイズ変化:
 
-- `os_label_*` の builtin 展開
-- redundant `MOV` / `PUSH` / `POP` の peephole 削除
-- constant folding
-- 簡単な multiplication / modulo の strength reduction
-- loop 内 base address の register reuse
+| 段階 | `simple_os.asm` 行数 | 元との差分 |
+|---|---|---|
+| 最適化なし | 2223 | — |
+| 第1フェーズ後 | 2167 | -56 (-2.5%) |
+| 第2フェーズ後 | 1940 | -283 (-12.7%) |
+| 第3フェーズ後 | 1561 | -662 (-29.8%) |
 
-サイズ縮小と速度向上は相反する場合がある。
-将来的には以下のような mode 分けが自然。
-
-- `-O0`: 最適化なし
-- `-O1`: 安全な局所最適化
-- `-O2`: 速度重視
-- `-Os`: サイズ重視
-
-無差別な inline 展開は、code size への影響が見えるまで避ける。
+将来的には `-O0` / `-O1` / `-O2` / `-Os` のような mode 分けが自然だが、現状はサイズと速度の両方に効きやすい局所最適化のみを常時有効にしている。
 
 ## テストと例
 
